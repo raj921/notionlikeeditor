@@ -116,18 +116,6 @@ export function Sidebar({ selectedDocumentId, onSelectDocument }: SidebarProps) 
               className="w-full px-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-200 backdrop-blur-sm"
               autoFocus
             />
-            <div className="flex items-center space-x-3">
-              <input
-                type="checkbox"
-                id="isPublic"
-                checked={newDocIsPublic}
-                onChange={(e) => setNewDocIsPublic(e.target.checked)}
-                className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2"
-              />
-              <label htmlFor="isPublic" className="text-sm font-medium text-gray-700">
-                Make public
-              </label>
-            </div>
             <div className="flex space-x-3">
               <button
                 type="submit"
@@ -226,17 +214,6 @@ function DocumentItem({
             <h3 className="text-sm font-semibold text-gray-900 truncate">
               {document.title}
             </h3>
-            {document.isPublic ? (
-              <div className="flex items-center space-x-1 px-2 py-1 bg-green-100 text-green-700 rounded-lg">
-                <Globe className="w-3 h-3" />
-                <span className="text-xs font-medium">Public</span>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-1 px-2 py-1 bg-gray-100 text-gray-600 rounded-lg">
-                <Lock className="w-3 h-3" />
-                <span className="text-xs font-medium">Private</span>
-              </div>
-            )}
           </div>
           <p className="text-xs text-gray-500 font-medium">
             {new Date(document.lastModified).toLocaleDateString('en-US', {
@@ -261,26 +238,6 @@ function DocumentItem({
 
             {showMenu && (
               <div className="absolute right-0 top-10 bg-white/95 backdrop-blur-md border border-gray-200/50 rounded-xl shadow-xl z-10 py-2 min-w-[140px]">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onTogglePublic();
-                    setShowMenu(false);
-                  }}
-                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3 transition-colors duration-150"
-                >
-                  {document.isPublic ? (
-                    <>
-                      <Lock className="w-4 h-4" />
-                      <span>Make Private</span>
-                    </>
-                  ) : (
-                    <>
-                      <Globe className="w-4 h-4" />
-                      <span>Make Public</span>
-                    </>
-                  )}
-                </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
