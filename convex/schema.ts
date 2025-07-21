@@ -5,7 +5,8 @@ import { authTables } from "@convex-dev/auth/server";
 const applicationTables = {
   documents: defineTable({
     title: v.string(),
-    isPublic: v.boolean(),
+    sharedWith: v.optional(v.array(v.id("users"))),
+    isPublic: v.optional(v.boolean()),
     createdBy: v.id("users"),
     lastModified: v.number(),
   })
@@ -20,4 +21,7 @@ const applicationTables = {
 export default defineSchema({
   ...authTables,
   ...applicationTables,
+  users: authTables.users.searchIndex("search_name", {
+    searchField: "name",
+  }),
 });

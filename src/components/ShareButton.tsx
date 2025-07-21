@@ -1,36 +1,26 @@
 import { useState } from "react";
-import { Share2, Copy, Check, ExternalLink } from "lucide-react";
+import {
+  Share2,
+  Copy,
+  Check,
+  ExternalLink,
+  Users,
+  X,
+  Plus,
+  Link,
+  Globe,
+} from "lucide-react";
 import { toast } from "sonner";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import { Doc, Id } from "../../convex/_generated/dataModel";
 
 interface ShareButtonProps {
-  documentId: string;
-  isPublic: boolean;
+  document: Doc<"documents">;
 }
 
-export function ShareButton({ documentId, isPublic }: ShareButtonProps) {
+export function ShareButton({ document }: ShareButtonProps) {
   const [showShareMenu, setShowShareMenu] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  if (!isPublic) {
-    return null;
-  }
-
-  const shareUrl = `${window.location.origin}/share/${documentId}`;
-
-  const copyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-      toast.success("Link copied to clipboard!");
-      setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      toast.error("Failed to copy link");
-    }
-  };
-
-  const openInNewTab = () => {
-    window.open(shareUrl, '_blank');
-  };
 
   return (
     <div className="relative">
@@ -44,14 +34,102 @@ export function ShareButton({ documentId, isPublic }: ShareButtonProps) {
       </button>
 
       {showShareMenu && (
-        <>
-          <div className="absolute top-12 right-0 bg-white/95 backdrop-blur-md border border-gray-200/50 rounded-xl shadow-xl z-20 py-3 min-w-[280px]">
-            <div className="px-4 pb-3 border-b border-gray-200/50">
-              <h3 className="text-sm font-semibold text-gray-900 mb-2">Share this document</h3>
-              <p className="text-xs text-gray-600">Anyone with the link can view this document</p>
+        <ShareModal
+          document={document}
+          onClose={() => setShowShareMenu(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+function ShareModal({
+  document,
+  onClose,
+}: {
+  document: Doc<"documents">;
+  onClose: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  const shareUrl = `${window.location.origin}/share/${document._id}`;
+  const [search, setSearch] = useState("");
+  const users = useQuery(api.users.search, { query: search });
+  const share = useMutation(api.documents.share);
+  const unshare = useMutation(api.documents.unshare);
+  const togglePublic = useMutation(api.documents.togglePublic);
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      toast.success("Link copied to clipboard!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      toast.error("Failed to copy link");
+    }
+  };
+
+  const openInNewTab = () => {
+    window.open(shareUrl, "_blank");
+  };
+
+  const handleShare = (userId: Id<"users">) => {
+    share({ id: document._id, userId });
+    toast.success("User added to share list");
+  };
+
+  const handleUnshare = (userId: Id<"users">) => {
+    unshare({ id: document._id, userId });
+    toast.success("User removed from share list");
+  };
+
+  return (
+    <>
+      <div className="absolute top-12 right-0 bg-white/95 backdrop-blur-md border border-gray-200/50 rounded-xl shadow-xl z-20 py-4 min-w-[320px]">
+        <div className="px-4 pb-3 border-b border-gray-200/50 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Share "{document.title}"
+          </h3>
+          <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-200">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="p-4 space-y-4">
+          {/* Public Access */}
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <Globe className="w-5 h-5 text-gray-500" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-800">
+                  Public Access
+                </p>
+                <p className="text-xs text-gray-500">
+                  {document.isPublic
+                    ? "Anyone with the link can view"
+                    : "Only invited people can access"}
+                </p>
+              </div>
+              <button
+                onClick={() => togglePublic({ id: document._id })}
+                className={`px-3 py-1 text-sm rounded-full ${
+                  document.isPublic
+                    ? "bg-red-100 text-red-700 hover:bg-red-200"
+                    : "bg-green-100 text-green-700 hover:bg-green-200"
+                }`}
+              >
+                {document.isPublic ? "Disable" : "Enable"}
+              </button>
             </div>
-            
-            <div className="p-4 space-y-3">
+          </div>
+
+          {/* Share Link */}
+          {document.isPublic && (
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <Link className="w-5 h-5 text-gray-500" />
+                <p className="text-sm font-medium text-gray-800">Share Link</p>
+              </div>
               <div className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
                 <input
                   type="text"
@@ -76,23 +154,67 @@ export function ShareButton({ documentId, isPublic }: ShareButtonProps) {
                   )}
                 </button>
               </div>
-              
-              <button
-                onClick={openInNewTab}
-                className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
-              >
-                <ExternalLink className="w-4 h-4" />
-                <span>Open in new tab</span>
-              </button>
+            </div>
+          )}
+
+          {/* Share with People */}
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <Users className="w-5 h-5 text-gray-500" />
+              <p className="text-sm font-medium text-gray-800">
+                Share with People
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="text"
+                placeholder="Search by email..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+            <div className="max-h-40 overflow-y-auto space-y-2">
+              {users?.map((user) => (
+                <div
+                  key={user._id}
+                  className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-100"
+                >
+                  <div className="flex items-center space-x-2">
+                    <img
+                      src={user.pictureUrl}
+                      alt={user.name}
+                      className="w-8 h-8 rounded-full"
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">
+                        {user.name}
+                      </p>
+                      <p className="text-xs text-gray-500">{user.email}</p>
+                    </div>
+                  </div>
+                  {document.sharedWith?.includes(user._id) ? (
+                    <button
+                      onClick={() => handleUnshare(user._id)}
+                      className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-full hover:bg-red-200"
+                    >
+                      Remove
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleShare(user._id)}
+                      className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200"
+                    >
+                      Add
+                    </button>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
-          
-          <div
-            className="fixed inset-0 z-10"
-            onClick={() => setShowShareMenu(false)}
-          />
-        </>
-      )}
-    </div>
+        </div>
+      </div>
+      <div className="fixed inset-0 z-10" onClick={onClose} />
+    </>
   );
 }

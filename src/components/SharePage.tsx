@@ -16,7 +16,7 @@ interface SharePageProps {
 }
 
 export function SharePage({ documentId }: SharePageProps) {
-  const document = useQuery(api.documents.getPublic, { id: documentId });
+  const document = useQuery(api.documents.get, { id: documentId });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

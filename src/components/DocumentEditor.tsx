@@ -152,7 +152,7 @@ export function DocumentEditor({ documentId }: DocumentEditorProps) {
                 </div>
               )}
               
-              <ShareButton documentId={documentId} isPublic={document.isPublic} />
+              <ShareButton document={document} />
             </div>
           </div>
 
