@@ -3,7 +3,8 @@ import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import { useBlockNoteSync } from "@convex-dev/prosemirror-sync/blocknote";
 import { BlockNoteView } from "@blocknote/mantine";
-import { BlockNoteEditor } from "@blocknote/core";
+import { BlockNoteEditor, BlockNoteSchema, defaultBlockSpecs } from "@blocknote/core";
+import { MediaBlock, insertMedia } from "./CustomBlock";
 import usePresence from "@convex-dev/presence/react";
 import FacePile from "@convex-dev/presence/facepile";
 import { ShareButton } from "./ShareButton";
@@ -34,11 +35,23 @@ export function DocumentEditor({ documentId }: DocumentEditorProps) {
     }
   }, [document?.title]);
 
+  const schema = BlockNoteSchema.create({
+    blockSpecs: {
+      ...defaultBlockSpecs,
+      media: MediaBlock,
+    },
+  });
+
   const sync = useBlockNoteSync<BlockNoteEditor>(
     api.prosemirror,
     documentId,
     {
       editorOptions: {
+        schema,
+        slashMenuItems: (editor) => [
+          ...editor.slashMenuItems,
+          insertMedia(editor),
+        ],
         _tiptapOptions: {
           editorProps: {
             attributes: {
