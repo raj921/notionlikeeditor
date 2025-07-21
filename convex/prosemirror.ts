@@ -21,7 +21,8 @@ async function checkPermissions(
   }
 
   // Check if user can access this document
-  if (!document.isPublic && document.createdBy !== userId) {
+  const isShared = document.sharedWith?.includes(userId);
+  if (document.createdBy !== userId && !isShared) {
     throw new Error("Access denied");
   }
 }
@@ -42,7 +43,8 @@ async function checkWritePermissions(
 
   // For now, anyone who can read can also write
   // You could make this more restrictive for public documents
-  if (!document.isPublic && document.createdBy !== userId) {
+  const isShared = document.sharedWith?.includes(userId);
+  if (document.createdBy !== userId && !isShared) {
     throw new Error("Access denied");
   }
 }

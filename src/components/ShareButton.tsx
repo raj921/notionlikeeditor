@@ -96,66 +96,6 @@ function ShareModal({
         </div>
 
         <div className="p-4 space-y-4">
-          {/* Public Access */}
-          <div className="space-y-2">
-            <div className="flex items-center space-x-2">
-              <Globe className="w-5 h-5 text-gray-500" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-800">
-                  Public Access
-                </p>
-                <p className="text-xs text-gray-500">
-                  {document.isPublic
-                    ? "Anyone with the link can view"
-                    : "Only invited people can access"}
-                </p>
-              </div>
-              <button
-                onClick={() => togglePublic({ id: document._id })}
-                className={`px-3 py-1 text-sm rounded-full ${
-                  document.isPublic
-                    ? "bg-red-100 text-red-700 hover:bg-red-200"
-                    : "bg-green-100 text-green-700 hover:bg-green-200"
-                }`}
-              >
-                {document.isPublic ? "Disable" : "Enable"}
-              </button>
-            </div>
-          </div>
-
-          {/* Share Link */}
-          {document.isPublic && (
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <Link className="w-5 h-5 text-gray-500" />
-                <p className="text-sm font-medium text-gray-800">Share Link</p>
-              </div>
-              <div className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
-                <input
-                  type="text"
-                  value={shareUrl}
-                  readOnly
-                  className="flex-1 text-sm text-gray-700 bg-transparent border-none outline-none"
-                />
-                <button
-                  onClick={copyToClipboard}
-                  className="flex items-center space-x-1 px-3 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="w-3 h-3" />
-                      <span>Copied</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3 h-3" />
-                      <span>Copy</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Share with People */}
           <div className="space-y-2">

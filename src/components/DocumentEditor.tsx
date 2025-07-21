@@ -153,36 +153,10 @@ export function DocumentEditor({ documentId }: DocumentEditorProps) {
             )}
             
             <div className="flex items-center space-x-3">
-              {document.isPublic ? (
-                <div className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 rounded-xl border border-green-200/50">
-                  <Globe className="w-4 h-4" />
-                  <span className="text-sm font-semibold">Public</span>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-gray-100 to-slate-100 text-gray-600 rounded-xl border border-gray-200/50">
-                  <Lock className="w-4 h-4" />
-                  <span className="text-sm font-semibold">Private</span>
-                </div>
-              )}
-              
               <ShareButton document={document} />
             </div>
           </div>
 
-          {/* Presence */}
-          <div className="flex items-center space-x-4">
-            {presenceState && presenceState.length > 0 && (
-              <div className="flex items-center space-x-3 px-4 py-2 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-200/50">
-                <div className="flex items-center space-x-2">
-                  <Users className="w-4 h-4 text-indigo-600" />
-                  <span className="text-sm font-semibold text-indigo-700">
-                    {presenceState.length} online
-                  </span>
-                </div>
-                <FacePile presenceState={presenceState} />
-              </div>
-            )}
-          </div>
         </div>
       </div>
 

@@ -10,49 +10,35 @@ export const list = query({
       throw new Error("Not authenticated");
     }
 
-    // Get user's private documents, shared documents, and public documents
-    const [privateDocuments, sharedDocuments, publicDocuments] =
-      await Promise.all([
-        ctx.db
-          .query("documents")
-          .withIndex("by_creator", (q) => q.eq("createdBy", userId))
-          .order("desc")
-          .collect(),
-        ctx.db
-          .query("documents")
-          .filter((q) =>
-            q.and(
-              q.neq(q.field("createdBy"), userId),
-              q.eq(q.field("isPublic"), false),
-              q.neq(q.field("sharedWith"), null),
-              q.eq(
-                q.field("sharedWith"),
-                //@ts-ignore
-                (q) => q.arrayContains(userId)
-              )
+    // Get user's private documents and shared documents
+    const [privateDocuments, sharedDocuments] = await Promise.all([
+      ctx.db
+        .query("documents")
+        .withIndex("by_creator", (q) => q.eq("createdBy", userId))
+        .order("desc")
+        .collect(),
+      ctx.db
+        .query("documents")
+        .filter((q) =>
+          q.and(
+            q.neq(q.field("createdBy"), userId),
+            q.neq(q.field("sharedWith"), null),
+            q.eq(
+              q.field("sharedWith"),
+              //@ts-ignore
+              (q) => q.arrayContains(userId)
             )
           )
-          .order("desc")
-          .collect(),
-        ctx.db
-          .query("documents")
-          .withIndex("by_public", (q) => q.eq("isPublic", true))
-          .order("desc")
-          .collect(),
-      ]);
+        )
+        .order("desc")
+        .collect(),
+    ]);
 
     // Combine and deduplicate
     const allDocuments = [...privateDocuments];
     const docIds = new Set(privateDocuments.map((d) => d._id));
 
     for (const doc of sharedDocuments) {
-      if (!docIds.has(doc._id)) {
-        allDocuments.push(doc);
-        docIds.add(doc._id);
-      }
-    }
-
-    for (const doc of publicDocuments) {
       if (!docIds.has(doc._id)) {
         allDocuments.push(doc);
         docIds.add(doc._id);
@@ -119,7 +105,7 @@ export const get = query({
 
     // Check if user can access this document
     const isShared = document.sharedWith?.includes(userId);
-    if (!document.isPublic && document.createdBy !== userId && !isShared) {
+    if (document.createdBy !== userId && !isShared) {
       throw new Error("Access denied");
     }
 
@@ -130,7 +116,6 @@ export const get = query({
 export const create = mutation({
   args: {
     title: v.string(),
-    isPublic: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -140,32 +125,7 @@ export const create = mutation({
 
     return await ctx.db.insert("documents", {
       title: args.title,
-      isPublic: args.isPublic ?? false,
       createdBy: userId,
-      lastModified: Date.now(),
-    });
-  },
-});
-
-export const togglePublic = mutation({
-  args: { id: v.id("documents") },
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-
-    const document = await ctx.db.get(args.id);
-    if (!document) {
-      throw new Error("Document not found");
-    }
-
-    if (document.createdBy !== identity.subject) {
-      throw new Error("Access denied");
-    }
-
-    await ctx.db.patch(args.id, {
-      isPublic: !document.isPublic,
       lastModified: Date.now(),
     });
   },
