@@ -1,9 +1,4 @@
-# Collaborative Text Editor with Notion-like Features
-  
-This is a project built with [Chef](https://chef.convex.dev) using [Convex](https://convex.dev) as its backend.
-  
-This project is connected to the Convex deployment named [`terrific-dogfish-109`](https://dashboard.convex.dev/d/terrific-dogfish-109).
-  
+
 ## Project structure
   
 The frontend code is in the `app` directory and is built with [Vite](https://vitejs.dev/).
